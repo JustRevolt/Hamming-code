@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 
 class HammingDecoder {
-    private byte[] message;
+    private byte [] message;
     private byte[] hammingCode;
     private int nk, //минимально необходимое число контрольных символов
             ni, //необходимое число информационных символов
@@ -13,7 +13,7 @@ class HammingDecoder {
 
     private ArrayList[] checkerPosition;
 
-    byte[] getResult(){
+    byte [] getResult(){
         return message;
     }
 
@@ -50,19 +50,38 @@ class HammingDecoder {
         return result;
     }
 
-    private boolean decodingB3(byte[] hammingB3){
+    private boolean decodingB3(byte[] hammingCodeB3){
+
         nk = (int) Math.ceil(lb(n+1 ));
         ni = n - nk;
-        message = new byte[ni];
+        message = new byte [ni];
         checkerPosition = new ArrayList[nk];
-        byte[] syndrome = new byte[nk];
+        byte [] syndrome = new byte [nk];
+        Byte[] hammingB3 = new Byte[hammingCodeB3.length];
 
         for (int i=1; i<=nk; i++){
             ArrayList<Integer> K = new ArrayList<>();
             for (int x=1; x<=n; x++){
+                hammingB3[x-1] = hammingCodeB3[x-1];
                 if ( ((x - x % Math.pow(2,i-1)) % Math.pow(2,i)) == Math.pow(2,i-1) ) K.add(x-1);
             }
             checkerPosition[i-1] = K;
+        }
+
+        for (int i=0; i<nk; i++){
+            int counter = 0;
+            for (Object symbol:checkerPosition[i] ) {
+                counter += hammingB3[(int) symbol];
+            }
+            syndrome[i] = (byte) (counter % 2);
+        }
+
+        errorByte = binaryToDecimal(syndrome);
+
+        boolean error = false;
+        if ( errorByte > 0) {
+            hammingB3[errorByte-1] = (byte) ((hammingB3[errorByte - 1] + 1) % 2);
+            error = true;
         }
 
         int pointer = 0;
@@ -76,36 +95,20 @@ class HammingDecoder {
             }
         }
 
-        for (int i=0; i<nk; i++){
-            int counter = 0;
-            for (Object symbol:checkerPosition[i] ) {
-                counter += hammingB3[(int) symbol];
-            }
-            syndrome[i] = (byte) (counter%2);
-        }
-
-        errorByte = binaryToDecimal(syndrome);
-
-        boolean error = false;
-        if ( errorByte > 0) {
-            message[errorByte-1] = (byte) ((message[errorByte-1]+1)%2);
-            error = true;
-        }
-
         return error;
     }
 
-    private boolean decodingB4(byte[] hammingB4){
+    private boolean decodingB4(byte [] hammingB4){
         boolean error = false;
         int counter = 0;
-        for(byte symbol: hammingB4){
+        for(byte  symbol: hammingB4){
             counter += symbol;
         }
         if (counter%2 == 1){
             error = true;
         }
 
-        message = new byte[n-1];
+        message = new byte [n-1];
         System.arraycopy(hammingB4, 0, message, 0, n - 1);
         n--;
 
@@ -113,10 +116,10 @@ class HammingDecoder {
     }
 
 
-    private int binaryToDecimal(byte[] x){
+    private int binaryToDecimal(byte [] x){
         int result = 0;
-        for (int i = x.length-1; i>=0; i--){
-            result += x[i]*Math.pow(2,x.length-i-1);
+        for (int i = 0; i<x.length; i++){
+            result += x[i]*Math.pow(2,i);
         }
         return result;
     }

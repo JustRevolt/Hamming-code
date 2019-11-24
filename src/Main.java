@@ -3,22 +3,33 @@ import java.util.Arrays;
 public class Main {
 
     private static void printByteString(byte[] message){
-        String result = Arrays.toString(message);
-        result = result.replace('[', (char) 0);
-        result = result.replace(']', (char) 0);
-        result = result.replace(',', (char) 0);
-        result = result.replace(' ', (char) 0);
-        System.out.println(result);
+        for (byte value: message){
+            System.out.print(value);
+        }
+        System.out.println();
     }
 
     public static void main(String args[]) {
-        byte[] message = {0,1,0,1};
+        byte[] message = {0,1,0,1,0,0,1,0};
 
-        HammingCoder coder1 = new HammingCoder(4,message,3);
+        HammingCoder coder1 = new HammingCoder(message.length,message,3);
         byte[] hammingCode1 = coder1.coding();
 
-        HammingCoder coder2 = new HammingCoder(hammingCode1.length,hammingCode1,4);
+        HammingCoder coder2 = new HammingCoder(message.length,message,4);
         byte[] hammingCode2 = coder2.coding();
+
+//       Эмитация передачи с ошибкой в информ. байте
+        hammingCode1[2] = (byte) ((hammingCode1[2]+1)%2);
+        hammingCode2[2] = (byte) ((hammingCode2[2]+1)%2);
+
+//       Эмитация передачи с ошибкой в контрол. байте b=3
+//        hammingCode1[1] = (byte) ((hammingCode1[1]+1)%2);
+//        hammingCode2[1] = (byte) ((hammingCode2[1]+1)%2);
+
+//       Эмитация передачи с ошибкой в контрол. байте b=4
+//        hammingCode2[hammingCode2.length-1] = (byte) ((hammingCode2[hammingCode2.length-1]+1)%2);
+
+
 
         HammingDecoder decoder1 = new HammingDecoder(hammingCode1.length, hammingCode1, 3);
         String message1 = decoder1.coding();
@@ -39,7 +50,7 @@ public class Main {
         System.out.println("---------------------------------------------------");
 
         System.out.print("Message for b=4"+"\n\t");
-        printByteString(hammingCode1);
+        printByteString(message);
         System.out.print("Hamming code for b=4"+"\n\t");
         printByteString(hammingCode2);
         System.out.print("Decoding for b=4"+"\n\t");
